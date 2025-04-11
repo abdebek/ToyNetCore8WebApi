@@ -1,4 +1,5 @@
-﻿using Toy.Extensions;
+﻿using Bogus;
+using Toy.Extensions;
 
 namespace Toy.Services;
 public interface IUserService
@@ -20,34 +21,22 @@ public class UserService : IUserService
         return jsonString;
     }
 
-
     public UserModel GenerateUser(int id)
     {
-        return new UserModel
-        {
-            UserId = id,
-            FirstName = "John",
-            LastName = "Doe",
-            DateOfBirth = new DateTime(1990, 1, 15),
-            Addresses = new List<AddressModel>
-            {
-                new AddressModel
-                {
-                    AddressId = 1,
-                    StreetAddress = "123 Main St",
-                    City = "New York",
-                    PostalCode = "10001",
-                    IsPrimary = true
-                },
-                new AddressModel
-                {
-                    AddressId = 2,
-                    StreetAddress = "456 Park Ave",
-                    City = "New York",
-                    PostalCode = "10002",
-                    IsPrimary = false
-                }
-            }
-        };
+        var addressFaker = new Faker<AddressModel>()
+            .RuleFor(a => a.AddressId, f => f.IndexFaker + 1)
+            .RuleFor(a => a.StreetAddress, f => f.Address.StreetAddress())
+            .RuleFor(a => a.City, f => f.Address.City())
+            .RuleFor(a => a.PostalCode, f => f.Address.ZipCode())
+            .RuleFor(a => a.IsPrimary, (f, a) => a.AddressId == 1);
+
+        var userFaker = new Faker<UserModel>()
+            .RuleFor(u => u.UserId, id)
+            .RuleFor(u => u.FirstName, f => f.Name.FirstName())
+            .RuleFor(u => u.LastName, f => f.Name.LastName())
+            .RuleFor(u => u.DateOfBirth, f => f.Date.Past(30, DateTime.Today.AddYears(-18)))
+            .RuleFor(u => u.Addresses, f => addressFaker.Generate(2));
+
+        return userFaker.Generate();
     }
 }
