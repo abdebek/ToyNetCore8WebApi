@@ -1,0 +1,11 @@
+@Toy_HostAddress = http://localhost:5134
+
+GET {{Toy_HostAddress}}/todos/
+Accept: application/json
+
+###
+
+GET {{Toy_HostAddress}}/todos/1
+Accept: application/json
+
+###
